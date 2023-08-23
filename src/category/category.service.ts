@@ -1,10 +1,21 @@
 import createHttpError from 'http-errors'
 import prisma from '../prisma/prisma.service'
+import { unlink } from 'fs'
+import { join } from 'path'
 
-const createCategory = async (name: string) => {
+type CreateCategorType = {
+  name: string
+  cover: string
+}
+
+type UpdateCategoryType = {
+  [key in keyof CreateCategorType]?: CreateCategorType[key]
+}
+
+const createCategory = async ( data: CreateCategorType) => {
   const findedCategory = await prisma.category.findUnique({
     where: {
-      name,
+      name: data.name
     },
   })
 
@@ -14,7 +25,7 @@ const createCategory = async (name: string) => {
 
   const newCategory = await prisma.category.create({
     data: {
-      name,
+      ...data
     },
   })
 
@@ -79,7 +90,7 @@ const getProductsByCategory = async (id: number) => {
 }
 
 
-const updateCategory = async (id: number, name: string) => {
+const updateCategory = async (id: number, data: UpdateCategoryType) => {
   const findedCategory = await prisma.category.findUnique({
     where: {
       id,
@@ -95,7 +106,7 @@ const updateCategory = async (id: number, name: string) => {
       id,
     },
     data: {
-      name,
+      ...data
     },
   })
 
@@ -112,6 +123,14 @@ const deleteCategory = async (id: number) => {
   if (!findedCategory) {
     throw createHttpError(404, 'Category not found')
   }
+
+  unlink(join(__dirname, '../../uploads', findedCategory.cover), (err) => {
+    if (err) {
+      console.log('File not deleted', err)
+    } else {
+      console.log('File successful deleted')
+    }
+  })
 
   const deletedCategory = await prisma.category.delete({
     where: {

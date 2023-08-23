@@ -18,6 +18,7 @@ model User {
   verified     Boolean       @default(false)
   role         Role          @default(none)
   Cart         Cart[]
+  Order        Order[]
   Rating       Rating[]
   Review       Review[]
   Saved        Saved[]
@@ -54,11 +55,13 @@ model Product {
   description String
   cover       String
   categoryId  Int
+  orderId     Int
   Banner      Banner?
   Cart        Cart[]
   Detail      Detail[]
   Image       Image[]
   Category    Category @relation(fields: [categoryId], references: [id])
+  Order       Order    @relation(fields: [orderId], references: [id])
   Rating      Rating[]
   Review      Review[]
   Saved       Saved[]
@@ -117,8 +120,19 @@ model Cart {
   userId    Int
   productId Int
   count     Int
+  status    String
   Product   Product @relation(fields: [productId], references: [id])
   User      User    @relation(fields: [userId], references: [id])
+}
+
+model Order {
+  id        Int       @id @default(autoincrement())
+  productId Int
+  userId    Int
+  status    Status    @default(waiting_pay)
+  count     Int
+  User      User      @relation(fields: [userId], references: [id])
+  Product   Product[]
 }
 
 enum Role {
@@ -126,4 +140,10 @@ enum Role {
   user
   admin
   supervisor
+}
+
+enum Status {
+  waiting_pay
+  delivered
+  accepted
 }

@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 import categoryService from './category.service'
+import createHttpError from 'http-errors'
 
 const createCategory = async (
   req: Request,
@@ -8,11 +9,20 @@ const createCategory = async (
 ) => {
   try {
     const { name } = req.body
-    const category = await categoryService.createCategory(name)
+    const file = req.file
+
+    if( !file ) {
+      throw createHttpError(400, "File not found")
+    }
+
+    const category = await categoryService.createCategory({
+      name, 
+      cover: file.filename
+    } )
 
     res.status(201).send({
       message: 'Category Created',
-      category,
+      category
     })
   } catch (e) {
     next(e)
@@ -78,8 +88,12 @@ const updateCategory = async (
   try {
     const { id } = req.params
     const { name } = req.body
+    const file = req.file
 
-    const category = await categoryService.updateCategory(+id, name)
+    const category = await categoryService.updateCategory(+id, {
+      name,
+      cover: file?.filename
+    })
 
     res.send({
       message: 'Category Updated',
