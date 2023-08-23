@@ -1,0 +1,129 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int           @id @default(autoincrement())
+  name         String?
+  surname      String?
+  email        String        @unique
+  phone        Int?
+  address      String?
+  password     String
+  verified     Boolean       @default(false)
+  role         Role          @default(none)
+  Cart         Cart[]
+  Rating       Rating[]
+  Review       Review[]
+  Saved        Saved[]
+  Verification Verification?
+}
+
+model Verification {
+  id     String   @unique
+  userId Int      @unique
+  email  String
+  date   DateTime
+  code   Int
+  User   User     @relation(fields: [userId], references: [id])
+}
+
+model ForgotPassword {
+  id    String   @unique
+  code  Int
+  email String   @unique
+  date  DateTime @default(now())
+}
+
+model Category {
+  id      Int       @id @default(autoincrement())
+  name    String    @unique
+  cover   String
+  Product Product[]
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  price       Float
+  description String
+  cover       String
+  categoryId  Int
+  Banner      Banner?
+  Cart        Cart[]
+  Detail      Detail[]
+  Image       Image[]
+  Category    Category @relation(fields: [categoryId], references: [id])
+  Rating      Rating[]
+  Review      Review[]
+  Saved       Saved[]
+}
+
+model Image {
+  id        Int     @id @default(autoincrement())
+  img       String
+  productId Int
+  Product   Product @relation(fields: [productId], references: [id])
+}
+
+model Detail {
+  id        Int     @id @default(autoincrement())
+  key       String
+  value     String
+  productId Int
+  Product   Product @relation(fields: [productId], references: [id])
+}
+
+model Banner {
+  id        Int     @id @default(autoincrement())
+  image     String
+  productId Int     @unique
+  Product   Product @relation(fields: [productId], references: [id])
+}
+
+model Review {
+  id        Int     @id @default(autoincrement())
+  comment   String
+  userId    Int
+  productId Int
+  Product   Product @relation(fields: [productId], references: [id])
+  User      User    @relation(fields: [userId], references: [id])
+}
+
+model Rating {
+  id        Int     @id @default(autoincrement())
+  rate      Float
+  userId    Int
+  productId Int
+  Product   Product @relation(fields: [productId], references: [id])
+  User      User    @relation(fields: [userId], references: [id])
+}
+
+model Saved {
+  id        Int     @id @default(autoincrement())
+  userId    Int
+  productId Int
+  Product   Product @relation(fields: [productId], references: [id])
+  User      User    @relation(fields: [userId], references: [id])
+}
+
+model Cart {
+  id        Int     @id @default(autoincrement())
+  userId    Int
+  productId Int
+  count     Int
+  Product   Product @relation(fields: [productId], references: [id])
+  User      User    @relation(fields: [userId], references: [id])
+}
+
+enum Role {
+  none
+  user
+  admin
+  supervisor
+}
